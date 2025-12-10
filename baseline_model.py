@@ -50,24 +50,29 @@ print(y_train.value_counts())
 print("\nMissing values in training data:")
 print(X_train.isnull().sum())
 
-# Fill numeric columns with median
+# Fill numeric columns with median (compute on training data only)
 numeric_cols = X_train.select_dtypes(include=[np.number]).columns
+median_values = {}
 for col in numeric_cols:
-    X_train[col].fillna(X_train[col].median(), inplace=True)
-    X_test[col].fillna(X_test[col].median(), inplace=True)
+    median_values[col] = X_train[col].median()
+    X_train[col].fillna(median_values[col], inplace=True)
+    X_test[col].fillna(median_values[col], inplace=True)
 
-# Fill categorical columns with mode
+# Fill categorical columns with mode (compute on training data only)
 categorical_cols = X_train.select_dtypes(include=['object']).columns
+mode_values = {}
 for col in categorical_cols:
-    X_train[col].fillna(X_train[col].mode()[0] if not X_train[col].mode().empty else 'Unknown', inplace=True)
-    X_test[col].fillna(X_test[col].mode()[0] if not X_test[col].mode().empty else 'Unknown', inplace=True)
+    mode_values[col] = X_train[col].mode()[0] if not X_train[col].mode().empty else 'Unknown'
+    X_train[col].fillna(mode_values[col], inplace=True)
+    X_test[col].fillna(mode_values[col], inplace=True)
 
 # Encode categorical variables
 label_encoders = {}
 for col in categorical_cols:
     le = LabelEncoder()
     X_train[col] = le.fit_transform(X_train[col].astype(str))
-    X_test[col] = X_test[col].astype(str).apply(lambda x: le.transform([x])[0] if x in le.classes_ else -1)
+    # Handle unseen categories in test data by mapping to a consistent value
+    X_test[col] = X_test[col].astype(str).apply(lambda x: le.transform([x])[0] if x in le.classes_ else le.transform([mode_values[col]])[0])
     label_encoders[col] = le
 
 # Scale features
@@ -97,14 +102,16 @@ print(f"Test Accuracy: {test_accuracy:.4f}")
 print("\nClassification Report on Test Set:")
 print(classification_report(y_test, y_test_pred))
 
-# Save the model and scaler
+# Save the model and preprocessing artifacts
 joblib.dump(model, 'logistic_regression_model.pkl')
 joblib.dump(scaler, 'scaler.pkl')
 joblib.dump(label_encoders, 'label_encoders.pkl')
+joblib.dump({'median': median_values, 'mode': mode_values}, 'preprocessing_values.pkl')
 
 print("\nModel saved as 'logistic_regression_model.pkl'")
 print("Scaler saved as 'scaler.pkl'")
 print("Label encoders saved as 'label_encoders.pkl'")
+print("Preprocessing values saved as 'preprocessing_values.pkl'")
 
 # Feature importance (coefficients)
 print("\nTop 10 Most Important Features (by absolute coefficient):")
