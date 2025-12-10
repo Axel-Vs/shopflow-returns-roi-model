@@ -72,7 +72,10 @@ for col in categorical_cols:
     le = LabelEncoder()
     X_train[col] = le.fit_transform(X_train[col].astype(str))
     # Handle unseen categories in test data by mapping to a consistent value
-    X_test[col] = X_test[col].astype(str).apply(lambda x: le.transform([x])[0] if x in le.classes_ else le.transform([mode_values[col]])[0])
+    default_value = le.transform([mode_values[col]])[0]
+    mapping = {label: le.transform([label])[0] if label in le.classes_ else default_value 
+               for label in X_test[col].astype(str).unique()}
+    X_test[col] = X_test[col].astype(str).map(mapping)
     label_encoders[col] = le
 
 # Scale features
