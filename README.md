@@ -21,6 +21,8 @@ pip install -r requirements.txt
 ```
 
 ### Usage
+
+#### Training the Model
 1. Prepare your data files:
    - `ecommerce_returns_train.csv` - Training dataset
    - `ecommerce_returns_test.csv` - Test dataset
@@ -37,6 +39,20 @@ python baseline_model.py
    - Save the trained model as `logistic_regression_model.pkl`
    - Save the scaler as `scaler.pkl`
    - Save the label encoders as `label_encoders.pkl`
+   - Save preprocessing values as `preprocessing_values.pkl`
+
+#### Making Predictions
+After training the model, use the `predict.py` script for inference:
+```bash
+python predict.py <input_file> [output_file]
+```
+
+Example:
+```bash
+python predict.py new_data.csv predictions.csv
+```
+
+This will load the trained model and generate predictions with return probabilities.
 
 ### Expected Output
 - Training and test accuracy scores
