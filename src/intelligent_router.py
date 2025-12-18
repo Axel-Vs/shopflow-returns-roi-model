@@ -293,7 +293,7 @@ class IntelligentRouter:
             proba_cat = probabilities[mask]
             
             best_threshold = self.default_threshold
-            best_score = 0.0
+            best_score = -1.0  # Initialize to -1 to ensure first valid threshold is selected
             
             # Search for best threshold
             thresholds = np.arange(
